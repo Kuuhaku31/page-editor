@@ -11,10 +11,14 @@ def 获取文件列表(path) -> list[str]:
     :return: 文件地址列表
     """
 
-    return [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+
+    # 处理 \\ 为 /
+    files = [f.replace("\\", "/") for f in files]
+    return files
 
 
-def 分组(文件列表, 单张编号):
+def 分组(文件列表, 单张编号, 单张文件名):
     """
     编号从 0 开始
     """
@@ -29,7 +33,7 @@ def 分组(文件列表, 单张编号):
         if p >= len(文件列表):
             break
 
-        elif p in 单张编号:
+        elif p in 单张编号 or 文件列表[p].split("/")[-1] in 单张文件名:
             状态 = "开始新的分组"
             分好的组列表.append([文件列表[p]])
             p += 1
@@ -73,21 +77,25 @@ def 合并图片(img_path1, img_path2, output_path):
 
 
 # 测试数据列表 = ["aaaa", "bbbb", "cccc", "dddd", "e", "f", "g"]
-测试数据编号 = [i for i in range(160, 171)]  # 假设每隔一个编号分组
+# 测试数据编号 = [i for i in range(160, 171)]  # 假设每隔一个编号分组
+# root_path = "D:/repositories/page-editor/img"
+# root_path2 = r"D:\def\e\m"
+# concat_images(f"{root_path}/001.jpg", f"{root_path}/000.jpg", f"{root_path}/output.jpg")
 
 if __name__ == "__main__":
 
-    root_path = "D:/repositories/page-editor/img"
-    root_path2 = r"D:\def\e\m"
+    in_put_path = ""
+    out_put_path = "-combine"
+    单张编号 = [0, 1, 2, 3, 4]
+    单张文件名 = ["P909.jpg"]
 
-    # concat_images(f"{root_path}/001.jpg", f"{root_path}/000.jpg", f"{root_path}/output.jpg")
+    file_list = 获取文件列表(in_put_path)
 
-    file_list = 获取文件列表(root_path2)
+    分好的组列表 = 分组(file_list, 单张编号, 单张文件名)
+    print("分好的组列表:", 分好的组列表)
 
-    分好的组列表 = 分组(file_list, 测试数据编号)
-    # print("测试数据列表:", 测试数据列表)
-    # print("测试数据编号:", 测试数据编号)
-    # print("分好的组列表:", 分好的组列表)
+    # 创建路径
+    os.makedirs(out_put_path, exist_ok=True)
 
     i = 0
     for 组 in 分好的组列表:
@@ -95,7 +103,7 @@ if __name__ == "__main__":
         # 如果其中一张图片不存在，则直接将另一张图片复制到输出路径
         if len(组) == 1:
             # 格式化输出，用0补齐
-            Image.open(组[0]).save(f"{root_path}/output_{i:03d}.jpg")
+            Image.open(组[0]).save(f"{out_put_path}/output_{i:03d}.jpg")
         else:
-            合并图片(组[1], 组[0], f"{root_path}/output_{i:03d}.jpg")
+            合并图片(组[1], 组[0], f"{out_put_path}/output_{i:03d}.jpg")
         i += 1
